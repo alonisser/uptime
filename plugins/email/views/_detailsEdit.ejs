@@ -4,5 +4,9 @@
     <div class="controls">
       <input type="text" name="check[alert_email]" value="<%= check.getPollerParam('alert_email') || '' %>" class="span8" placeholder="Email address to send alerts for this check. Leave blank to use default."/>
     </div>
+    <label class="control-label">Disable email alert</label>
+    <div class="controls">
+      <input type="checkbox" name="check[disable_email]" <%= check.getPollerParam('disable_email') ? "checked" : "" %>/>
+    </div>
   </div>
 </fieldset>

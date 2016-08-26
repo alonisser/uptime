@@ -64,6 +64,7 @@ exports.initWebApp = function(options) {
   var dashboard = options.dashboard;
   CheckEvent.on('afterInsert', function(checkEvent) {
     if (!config.event[checkEvent.message]) return;
+
     checkEvent.findCheck(function(err, check) {
       if (err) return console.error(err);
       var filename = templateDir + checkEvent.message + '.ejs';
@@ -84,6 +85,10 @@ exports.initWebApp = function(options) {
       if (check.pollerParams.alert_email) {
         mailOptions.to = check.pollerParams.alert_email;
       }
+
+      if(check.pollerParams.disable_email){
+        return
+      }
       mailer.sendMail(mailOptions, function(err2, response) {
         if (err2) return console.error('Email plugin error: %s', err2);
         console.log('Notified event by email: Check ' + check.name + ' ' + checkEvent.message);
@@ -94,6 +99,7 @@ exports.initWebApp = function(options) {
   dashboard.on('populateFromDirtyCheck', function(checkDocument, dirtyCheck, type) {
       if (type !== 'http' && type !== 'https') return;
       var alert_email = dirtyCheck.alert_email;
+      var disable_email = !!dirtyCheck.disable_email;
     
       if (alert_email) {
         var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -102,6 +108,8 @@ exports.initWebApp = function(options) {
         }  
       }
       checkDocument.setPollerParam('alert_email', alert_email);
+      checkDocument.setPollerParam('disable_email', disable_email);
+
     });
 
   dashboard.on('checkEdit', function(type, check, partial) {
