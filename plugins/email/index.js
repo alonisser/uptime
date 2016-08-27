@@ -58,12 +58,12 @@ var template = fs.readFileSync(__dirname + '/views/_detailsEdit.ejs', 'utf8');
 
 
 exports.initWebApp = function(options) {
-  var config = options.config.email;
-  var mailer = nodemailer.createTransport(config.method, config.transport);
+  var emailConfig = options.config.email;
+  var mailer = nodemailer.createTransport(emailConfig.method, emailConfig.transport);
   var templateDir = __dirname + '/views/';
   var dashboard = options.dashboard;
   CheckEvent.on('afterInsert', function(checkEvent) {
-    if (!config.event[checkEvent.message]) return;
+    if (!emailConfig.event[checkEvent.message]) return;
 
     checkEvent.findCheck(function(err, check) {
       if (err) return console.error(err);
@@ -77,8 +77,8 @@ exports.initWebApp = function(options) {
       };
       var lines = ejs.render(fs.readFileSync(filename, 'utf8'), renderOptions).split('\n');
       var mailOptions = {
-        from:    config.message.from,
-        to:      config.message.to,
+        from:    emailConfig.message.from,
+        to:      emailConfig.message.to,
         subject: lines.shift(),
         text:    lines.join('\n')
       };

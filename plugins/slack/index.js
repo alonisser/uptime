@@ -1,7 +1,7 @@
 /**
- * Email plugin
+ * Slack plugin
  *
- * Notifies all events (up, down, paused, restarted) by email
+ * Notifies all events (up, down, paused, restarted) by slack webhook
  *
  * Installation
  * ------------
@@ -10,12 +10,12 @@
  *
  *   // in config/production.yaml
  *   plugins:
- *     - ./plugins/email
+ *     - ./plugins/slack
  *
  * Usage
  * -----
- * This plugin sends an email each time a check is started, goes down, or goes back up.
- * When the check goes down, the email contains the error details:
+ * This plugin sends an slack message to a specific channel each time a check is started, goes down, or goes back up.
+ * When the check goes down, the slack contains the error details:
  *
  *   Object: [Down] Check "FooBar" just went down
  *   On Thursday, September 4th 1986 8:30 PM,
@@ -23,31 +23,18 @@
  *
  *     Error 500
  *
- *   Uptime won't send anymore emails about this check until it goes back up.
+ *   Uptime won't send anymore messages about this check until it goes back up.
  *   ---------------------------------------------------------------------
- *   This is an automated email sent from Uptime. Please don't reply to it.
+ *   This is an automated slack message sent from Uptime. Please don't reply to it.
  *
  * Configuration
  * -------------
  * Here is an example configuration:
  *
  *   // in config/production.yaml
- *   email:
- *     method:      SMTP  # possible methods are SMTP, SES, or Sendmail
- *     transport:         # see https://github.com/andris9/nodemailer for transport options
- *       service:   Gmail
- *       auth:
- *         user:    foobar@gmail.com
- *         pass:    gursikso
- *     event:
- *       up:        true
- *       down:      true
- *       paused:    false
- *       restarted: false
- *     message:
- *       from:     'Fred Foo <foo@blurdybloop.com>'
- *       to:       'bar@blurdybloop.com, baz@blurdybloop.com'
- *     # The email plugin also uses the main `url` param for hyperlinks in the sent emails
+ *   slack:
+ *     default_webhook:      SMTP  # possible methods are SMTP, SES, or Sendmail
+ *
  */
 var fs = require('fs');
 var request = require('request');
@@ -58,17 +45,29 @@ var template = fs.readFileSync(__dirname + '/views/_detailsEdit.ejs', 'utf8');
 
 
 exports.initWebApp = function (options) {
-    var config = options.config.email;
+    var slackConfig = options.config.slack;
 
     var templateDir = __dirname + '/views/';
     var dashboard = options.dashboard;
     CheckEvent.on('afterInsert', function (checkEvent) {
-        if (!config.event[checkEvent.message]) return;
+        if (!slackConfig.event[checkEvent.message]) return;
+
+
 
         checkEvent.findCheck(function (err, check) {
             if (err) {
                 return console.error(err);
             }
+
+            if (check.pollerParams.disable_slack) {
+                return
+            }
+
+            var slackChannel = check.pollerParams.slack_channel || slackConfig && slackConfig.slack_channel;
+            if (!slackChannel){
+                return console.error('No slack channel in either project or configuration yml')
+            }
+
             var filename = templateDir + checkEvent.message + '.ejs';
             var renderOptions = {
                 check: check,
@@ -79,12 +78,8 @@ exports.initWebApp = function (options) {
             };
             var lines = ejs.render(fs.readFileSync(filename, 'utf8'), renderOptions).split('\n');
 
-            if (check.pollerParams.disable_slack) {
-                return
-            }
-
             var slackOptions = {
-                url: check.pollerParams.slack_channel,
+                url: slackChannel,
                 body: JSON.stringify({text: lines.join('\n')}),
                 // json: true,
                 timeout: 2000
@@ -114,5 +109,5 @@ exports.initWebApp = function (options) {
     });
 
 
-    console.log('Enabled Email notifications');
+    console.log('Enabled Slack notifications');
 };

@@ -2,7 +2,7 @@
   <div class="control-group">
     <label class="control-label">Slack webhook url</label>
     <div class="controls">
-      <input type="text" name="check[slack_channel]" value="<%= check.getPollerParam('slack_channel') || '' %>" class="span8" placeholder="Slack incoming webhook url"/>
+      <input type="text" name="check[slack_channel]" value="<%= check.getPollerParam('slack_channel') || '' %>" class="span8" placeholder="Slack incoming webhook url. if you leave this blank we'll use the default channel if you have one"/>
     </div>
     <label class="control-label">Disable slack alert for this check</label>
     <div class="controls">
