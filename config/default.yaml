@@ -53,4 +53,13 @@ verbose: true # only used in dev
 webPageTest:
   server: 'http://www.webpagetest.org'
   key:
-  testOptions: 
+  testOptions:
+
+slack:
+  slack_channel: ''
+
+  event:
+    up:        true
+    down:      true
+    paused:    false
+    restarted: false
