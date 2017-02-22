@@ -59,6 +59,11 @@ exports.initWebApp = function (options) {
                 return console.error(err);
             }
 
+            if (!check.pollerParams){
+                console.error('Missing pollerParams for check %s', check);
+                check.pollerParams = {}
+            }
+
             if (check.pollerParams.disable_slack) {
                 return
             }

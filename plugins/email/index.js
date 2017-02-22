@@ -82,6 +82,10 @@ exports.initWebApp = function(options) {
         subject: lines.shift(),
         text:    lines.join('\n')
       };
+      if (!check.pollerParams){
+        return console.error('Missing pollerParams for check %s', check);
+      }
+
       if (check.pollerParams.alert_email) {
         mailOptions.to = check.pollerParams.alert_email;
       }
